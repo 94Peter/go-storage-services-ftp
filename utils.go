@@ -42,7 +42,6 @@ func (s *Storage) Close() error {
 
 func CloseFtpStorager(storager types.Storager) error {
 	if ftp, ok := storager.(FtpStorager); ok {
-		fmt.Println("close ftp storager")
 		return ftp.Close()
 	}
 	return nil
