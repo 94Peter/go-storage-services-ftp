@@ -36,19 +36,36 @@ func (s *Storage) String() string {
 	return fmt.Sprintf("Storager ftp {URL: %s, User: %s, WorkDir: %s}", s.url, s.user, s.workDir)
 }
 
+func (s *Storage) Close() error {
+	return s.connection.Quit()
+}
+
+func CloseFtpStorager(storager types.Storager) error {
+	if ftp, ok := storager.(FtpStorager); ok {
+		fmt.Println("close ftp storager")
+		return ftp.Close()
+	}
+	return nil
+}
+
+type FtpStorager interface {
+	types.Storager
+	Close() error
+}
+
 // NewStorager will create Storager only.
 func NewStorager(pairs ...types.Pair) (types.Storager, error) {
 	return newStorager(pairs...)
 }
 
-func newStorager(pairs ...types.Pair) (store *Storage, err error) {
+func newStorager(pairs ...types.Pair) (myStorager FtpStorager, err error) {
 	defer func() {
 		if err != nil {
 			err = services.InitError{Op: "new_storager", Type: Type, Err: formatError(err), Pairs: pairs}
 		}
 	}()
 
-	store = &Storage{
+	store := &Storage{
 		connection: nil,
 		user:       "anonymous",
 		password:   "anonymous",
@@ -101,6 +118,7 @@ func newStorager(pairs ...types.Pair) (store *Storage, err error) {
 	if err != nil {
 		return nil, err
 	}
+	myStorager = store
 	return
 }
 
